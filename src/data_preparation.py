@@ -1,40 +1,58 @@
 import pandas as pd
 import os
 
-def prepare_career_data(raw_path='data/raw/career_recommender.csv',
-                        save_path='data/processed/career_recommender_cleaned.csv'):
-    # Load the raw data
-    df = pd.read_csv(raw_path)
+def prepare_career_data(
+    raw_data_path='data/raw/job_applicants.csv',
+    processed_data_path='data/processed/job_applicants_cleaned.csv',
+    top_skills_count=20
+):
+    # Load raw data
+    df = pd.read_csv(raw_data_path)
+    print(f"✅ Loaded dataset with shape: {df.shape}")
 
-    # Clean up column names
-    df.columns = [col.strip() for col in df.columns]
+    # Drop 'Unnamed: 0' column
+    if 'Unnamed: 0' in df.columns:
+        df = df.drop(columns=['Unnamed: 0'])
 
-    # Assign the real target column
-    TARGET_COLUMN = 'If yes, then what is/was your first Job title in your current field of work? If not applicable, write NA.'
+    # Fill missing 'HaveWorkedWith' with 'None'
+    df['HaveWorkedWith'] = df['HaveWorkedWith'].fillna('None')
 
-    # Drop rows where label is missing
-    df = df.dropna(subset=[TARGET_COLUMN])
+    # Split skills into lists
+    df['SkillsList'] = df['HaveWorkedWith'].apply(lambda x: x.split(';') if isinstance(x, str) else [])
 
-    # Rename target column to clean 'Career'
-    df = df.rename(columns={TARGET_COLUMN: 'Career'})
+    # Build a list of top N most common skills
+    all_skills = [skill for sublist in df['SkillsList'] for skill in sublist]
+    skill_counts = pd.Series(all_skills).value_counts()
+    top_skills = skill_counts.head(top_skills_count).index.tolist()
+    print(f"✅ Top {top_skills_count} skills selected: {top_skills}")
 
-    # Fill missing feature columns with 'Unknown'
-    feature_cols = [
-        'What are your interests?',
-        'What are your skills ? (Select multiple if necessary)',
-        'What was your course in UG?',
-        'What is your UG specialization? Major Subject (Eg; Mathematics)',
-    ]
+    # One-hot encode top skills
+    for skill in top_skills:
+        df[f'Skill_{skill}'] = df['SkillsList'].apply(lambda skills: int(skill in skills))
+    for col in ['EdLevel', 'Gender', 'MentalHealth', 'MainBranch', 'Country']:
+        print(f"\nUnique values for {col}:")
+        print(df[col].unique())
 
-    for col in feature_cols:
-        if col in df.columns:
-            df[col] = df[col].fillna('Unknown')
+    # Drop Employment column (we don't want to leak employment status into model)
+    if 'Employment' in df.columns:
+        df = df.drop(columns=['Employment'])
 
-    # Save cleaned dataset
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    df.to_csv(save_path, index=False)
+    # Drop raw 'HaveWorkedWith' and 'SkillsList'
+    df = df.drop(columns=['HaveWorkedWith', 'SkillsList'])
 
-    print(f"✅ Data preparation complete. Final dataset shape: {df.shape}")
+    # Handle categorical encoding manually for basic fields
+    categorical_cols = ['Age', 'Accessibility', 'EdLevel', 'Gender', 'MentalHealth', 'MainBranch', 'Country']
+    df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+
+    # Handle numeric missing values if any (none expected, but safe)
+    df = df.fillna(0)
+
+    # Save cleaned file
+    os.makedirs(os.path.dirname(processed_data_path), exist_ok=True)
+    df.to_csv(processed_data_path, index=False)
+    print(f"✅ Processed data saved to {processed_data_path}")
+    print(f"✅ Final shape: {df.shape}")
+
 
 if __name__ == "__main__":
     prepare_career_data()

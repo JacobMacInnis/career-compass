@@ -1,3 +1,7 @@
 pandas
 scikit-learn
 tensorflow
+fastapi
+uvicorn
+joblib
+pandas
