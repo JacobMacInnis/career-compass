@@ -2,9 +2,17 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+import os
 
-def load_and_split_features_labels(cleaned_data_path='data/processed/job_applicants_cleaned.csv'):
+def load_and_split_features_labels(cleaned_data_path='data/processed/job_applicants_cleaned.csv',
+                                    online_learning_data_path='data/processed/job_applicants_online_learning_cleaned.csv'):
     df = pd.read_csv(cleaned_data_path)
+
+    # If online learning data exists, merge it
+    if os.path.exists(online_learning_data_path):
+        df_online = pd.read_csv(online_learning_data_path)
+        df = pd.concat([df, df_online], ignore_index=True)
+        print(f"✅ Merged online learning data: {len(df_online)} new rows")
 
     # Features and Target
     X = df.drop(columns=['Employed'])
