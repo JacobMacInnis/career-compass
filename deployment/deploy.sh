@@ -71,7 +71,9 @@ gcloud run deploy ${CLOUD_RUN_SERVICE_NAME} \
   --allow-unauthenticated \
   --port ${PORT} \
   --memory ${CLOUD_RUN_MEMORY} \
-  --timeout ${CLOUD_RUN_TIMEOUT}s || { echo_error "Cloud Run deployment failed!"; exit 1; }
+  --timeout ${CLOUD_RUN_TIMEOUT}s \
+  --set-env-vars CLOUD_DATABASE_URL="${CLOUD_DATABASE_URL}" \
+  --set-env-vars DATABASE_URL="${CLOUD_DATABASE_URL}" || { echo_error "Cloud Run deployment failed!"; exit 1; }
 
 echo_success "✅ Deployment completed successfully!"
 
