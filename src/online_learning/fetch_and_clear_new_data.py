@@ -27,16 +27,27 @@ def fetch_new_records_and_clear_db():
             record = {column.name: getattr(applicant, column.name) for column in UserEntry.__table__.columns}
             records.append(record)
 
-        df = pd.DataFrame(records)
+        new_df = pd.DataFrame(records)
 
         os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)
-        df.to_csv(SAVE_PATH, index=False)
-        print(f"✅ Saved {len(df)} new applicants to {SAVE_PATH}")
+
+        if os.path.exists(SAVE_PATH):
+            # If the file exists, load it and append
+            existing_df = pd.read_csv(SAVE_PATH)
+            combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+            print(f"✅ Appending {len(new_df)} new records to existing {len(existing_df)} records")
+        else:
+            # If it doesn't exist, just use the new data
+            combined_df = new_df
+            print(f"✅ No existing file found, saving {len(new_df)} new records")
+
+        combined_df.to_csv(SAVE_PATH, index=False)
+        print(f"✅ Total saved records: {len(combined_df)}")
 
         # Delete all fetched records
         db.query(UserEntry).delete()
         db.commit()
-        print(f"✅ Cleared {len(df)} records from UserEntry table")
+        print(f"✅ Cleared {len(new_df)} records from UserEntry table")
 
     except Exception as e:
         print(f"❌ Error during fetch and clear: {e}")
