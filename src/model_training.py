@@ -1,25 +1,39 @@
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import InputLayer, Dense, Dropout
-# Scale numeric features
 from sklearn.preprocessing import StandardScaler
 from feature_engineering import (
     load_and_split_features_labels,
     split_train_test,
-    scale_numerical_features
+    scale_numerical_features,
+    select_important_features
 )
 import joblib
 import os
 
+## Model attempt 1
+# def build_model(input_dim):
+#     model = Sequential([
+#         InputLayer(shape=(input_dim,)),
+#         Dense(256, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+#         Dropout(0.3),
+#         Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+#         Dropout(0.3),
+#         Dense(1, activation='sigmoid')  # binary classification (0/1)
+#     ])
+#     return model
 
+## Model attempt 2
 def build_model(input_dim):
     model = Sequential([
         InputLayer(shape=(input_dim,)),
-        Dense(256, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        Dense(512, activation='relu'),
         Dropout(0.3),
-        Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        Dense(256, activation='relu'),
         Dropout(0.3),
-        Dense(1, activation='sigmoid')  # binary classification (0/1)
+        Dense(128, activation='relu'),
+        Dropout(0.3),
+        Dense(1, activation='sigmoid')  # Binary classification
     ])
     return model
 
@@ -33,24 +47,20 @@ if __name__ == "__main__":
     # Define numeric columns to scale
     numeric_cols = ['YearsCode', 'YearsCodePro', 'PreviousSalary', 'ComputerSkills']
 
-
-    # numeric_cols = [col for col in X_train.columns if X_train[col].dtype in ['float64', 'int64']]
-    scaler = StandardScaler()
-    X_train[numeric_cols] = scaler.fit_transform(X_train[numeric_cols])
-    X_test[numeric_cols] = scaler.transform(X_test[numeric_cols])
+    # Scale numeric columns
+    X_train, X_test = scale_numerical_features(X_train, X_test, numeric_cols)
     print(f"✅ Numeric columns scaled: {numeric_cols}")
 
-    print(f"✅ Data prepared: X_train: {X_train.shape}, X_test: {X_test.shape}")
+    # Feature Selection
+    X_train, selected_features = select_important_features(X_train, y_train, threshold=0.01)
+    X_test = X_test[selected_features]
+    print(f"✅ Feature selection done: X_train: {X_train.shape}, X_test: {X_test.shape}")
 
-    # Save scaler
+    # Save scaler and feature names
     os.makedirs('models', exist_ok=True)
-
-    joblib.dump(scaler, 'models/scaler.pkl')
-    print("✅ Saved scaler to models/scaler.pkl")
-    joblib.dump(X_train.columns.tolist(), 'models/trained_columns.pkl')
-    print("✅ Saved trained columns to models/trained_columns.pkl")
+    joblib.dump(selected_features, 'models/trained_columns.pkl')
     joblib.dump(numeric_cols, 'models/numeric_columns.pkl')
-    print("✅ Saved numeric columns to models/numeric_columns.pkl")
+    print("✅ Saved selected features and numeric columns.")
 
     # Build model
     input_dim = X_train.shape[1]
@@ -66,7 +76,7 @@ if __name__ == "__main__":
 
     early_stop = tf.keras.callbacks.EarlyStopping(
         monitor='val_loss',
-        patience=5,
+        patience=2,
         restore_best_weights=True
     )
 
@@ -77,8 +87,10 @@ if __name__ == "__main__":
         batch_size=32,
         callbacks=[early_stop]
     )
+
     print("✅ Model trained")
 
-    # Save model
+    # Save model and history
     model.save('models/career_employability_predictor.keras')
-    print("✅ Model saved to models/career_employability_predictor.keras")
+    joblib.dump(history.history, 'models/training_history.pkl')
+    print("✅ Model and history saved to 'models/' folder.")

@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 
 def load_and_split_features_labels(cleaned_data_path='data/processed/job_applicants_cleaned.csv'):
     df = pd.read_csv(cleaned_data_path)
@@ -22,6 +23,21 @@ def scale_numerical_features(X_train, X_test, numeric_cols):
     X_train[numeric_cols] = scaler.fit_transform(X_train[numeric_cols])
     X_test[numeric_cols] = scaler.transform(X_test[numeric_cols])
     return X_train, X_test
+
+def select_important_features(X_train, y_train, threshold=0.01):
+    print("✅ Running Random Forest feature selection...")
+
+    rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf.fit(X_train, y_train)
+
+    importances = pd.Series(rf.feature_importances_, index=X_train.columns)
+    selected_features = importances[importances > threshold].index.tolist()
+
+    print(f"✅ Selected {len(selected_features)} features after threshold {threshold}")
+
+    X_train_reduced = X_train[selected_features]
+    return X_train_reduced, selected_features
+
 
 if __name__ == "__main__":
     X, y = load_and_split_features_labels()

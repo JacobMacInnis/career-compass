@@ -71,48 +71,20 @@ def predict(user: UserProfile):
 
     # Predict
     prediction = model.predict(df)[0][0]
+    probability = round(float(prediction), 4)
     prediction_label = int(prediction >= 0.5)
 
+    # Add human-readable output
+    label_meaning = "Likely Employed" if prediction_label == 1 else "Likely Unemployed"
+    confidence = round(probability * 100, 2) if prediction_label == 1 else round((1 - probability) * 100, 2)
+
     return {
-        "employability_probability": float(prediction),
-        "employability_label": prediction_label
+        "employability_probability": probability,
+        "employability_label": prediction_label,
+        "meaning": label_meaning,
+        "confidence_percent": confidence
     }
 
 @app.get("/info")
 def info():
     return {"model_version": "v1.0.0", "author": "Jacob MacInnis", "framework": "TensorFlow"}
-
-
-# {
-#   "Age": 47,
-#   "Accessibility": 0,
-#   "EdLevel": 'Undergraduate',
-#   "Gender": "",
-#   "MentalHealth": "string",
-#   "MainBranch": "string",
-#   "YearsCode": 0,
-#   "YearsCodePro": 0,
-#   "Country": "string",
-#   "PreviousSalary": 0,
-#   "ComputerSkills": 0,
-#   "Skill_JavaScript": 0,
-#   "Skill_Docker": 0,
-#   "Skill_HTML_CSS": 0,
-#   "Skill_SQL": 0,
-#   "Skill_Git": 0,
-#   "Skill_AWS": 0,
-#   "Skill_Python": 0,
-#   "Skill_PostgreSQL": 0,
-#   "Skill_MySQL": 0,
-#   "Skill_TypeScript": 0,
-#   "Skill_Node_js": 0,
-#   "Skill_React_js": 0,
-#   "Skill_Java": 0,
-#   "Skill_Bash_Shell": 0,
-#   "Skill_CSharp": 0,
-#   "Skill_Microsoft_SQL_Server": 0,
-#   "Skill_SQLite": 0,
-#   "Skill_jQuery": 0,
-#   "Skill_Microsoft_Azure": 0,
-#   "Skill_MongoDB": 0
-# }
