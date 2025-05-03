@@ -1,51 +1,82 @@
-# Career Compass - Machine Learning Career Recommender API
+# Career Compass - Employment Prediction API
 
-Career Compass is a production-focused machine learning system that provides personalized career recommendations based on user profile attributes.  
-It is built with modern MLOps principles in mind: modular code organization, containerized deployments, cloud-hosted infrastructure, and real SQL-backed feature storage.
+Career Compass is a production-grade machine learning system that predicts **whether a user is currently employed** based on structured profile attributes.
+It follows modern MLOps principles: modular architecture, containerized deployments, continuous learning support, cloud SQL integration, and automated cloud hosting.
 
 ---
 
 ## 📚 Project Overview
 
-This project demonstrates a complete machine learning deployment workflow:
+This project demonstrates a real-world ML deployment pipeline:
 
-- Data ingestion and feature engineering from structured career and user datasets
-- Supervised learning model training using TensorFlow/Keras
-- Serving real-time predictions through a Dockerized FastAPI web service
-- Cloud deployment on GCP Cloud Run with Artifact Registry and Cloud SQL (Postgres)
-
-Career Compass is designed to simulate how scalable recommendation engines are built and served in real-world production environments.
+- **Data ingestion**, feature engineering, and preprocessing from structured datasets
+- **Supervised binary classification** model training using TensorFlow/Keras
+- **Real-time prediction API** served via FastAPI inside a Docker container
+- **Cloud deployment** on Google Cloud Run with Artifact Registry and Cloud SQL (PostgreSQL)
+- **Continuous learning workflows** for model retraining as new data arrives
+- **Data visualizations** for monitoring and understanding model behavior
 
 ---
 
 ## ⚙️ Technology Stack
 
-- **Machine Learning**: TensorFlow/Keras (deep learning model for recommendations)
-- **Backend API**: FastAPI (high-performance web server)
-- **Database**: Postgres on GCP Cloud SQL (structured user and career metadata)
+- **Machine Learning**: TensorFlow/Keras (binary classification)
+- **API Backend**: FastAPI (async high-performance server)
+- **Database**: PostgreSQL (via Cloud SQL)
 - **Containerization**: Docker
-- **Cloud Infrastructure**: GCP Cloud Run, Artifact Registry
-- **Data Processing**: Pandas, optional Scikit-learn for preprocessing
+- **Cloud Infrastructure**: GCP Cloud Run + Artifact Registry
+- **Data Processing**: Pandas, Scikit-learn
+- **Visualization**: Matplotlib, Seaborn
 
 ---
 
 ## 🏗️ Architecture
 
-1. **Data Layer**: Raw career and user datasets stored locally, cleaned and processed.
-2. **Model Layer**: Supervised ML model trained to predict suitable careers based on user profile features.
-3. **API Layer**: FastAPI application exposes a `/recommendations` endpoint, loading the trained model for real-time inference.
-4. **Infrastructure Layer**: Docker containerized app, pushed to Artifact Registry, deployed to Cloud Run.  
-   Postgres database hosted on Cloud SQL holds user feature data.
+1. **Data Layer**: Raw datasets → processed features → stored in PostgreSQL
+2. **Model Layer**: Supervised ML model trained to classify users as employed or not employed
+3. **API Layer**: FastAPI app exposes a `/predict` endpoint for employment prediction
+4. **Deployment Layer**: Dockerized app deployed to Cloud Run
+5. **Continuous Learning**: Scripts to retrain and redeploy updated models seamlessly
 
 ---
 
 ## 🚀 Key Features
 
-- Modular, production-ready Python codebase
-- Clean separation of data preparation, model training, and API serving
-- Scalable cloud deployment with minimal ops overhead
-- SQL-backed user data management
-- Lightweight, fast model for real-time responses
+- Modular, production-focused codebase
+- SQL-backed feature storage (Postgres Cloud SQL)
+- Real-time employment status predictions
+- Continuous model retraining support
+- Fully containerized and cloud-deployable
+- Insightful model and dataset visualizations
+
+---
+
+## 📈 Visualizations
+
+### Correlation Heatmap
+
+![Correlation Heatmap](https://github.com/JacobMacInnis/career-compass/blob/main/plots/correlation_heatmap.png?raw=true)
+
+- Shows correlations between numerical features, excluding country columns.
+- Helps identify important relationships driving employment outcomes.
+
+---
+
+### Top Feature Correlations with Employment
+
+![Top Employment Correlations](https://github.com/JacobMacInnis/career-compass/blob/main/plots/top_employment_correlations.png?raw=true)
+
+- Highlights the features most correlated with being employed.
+- Useful for feature selection and model explainability.
+
+---
+
+### Training vs Validation Loss Curve
+
+![Loss Curve](https://github.com/JacobMacInnis/career-compass/blob/main/plots/loss_curve.png?raw=true)
+
+- Displays training and validation loss across epochs.
+- Helps monitor model convergence and detect overfitting.
 
 ---
 
@@ -53,59 +84,152 @@ Career Compass is designed to simulate how scalable recommendation engines are b
 
 ```
 career-compass/
-├── data/ # Raw and processed datasets
-│ ├── raw/ # Unmodified original data
-│ └── processed/ # Cleaned and prepared data
-├── docker/ # Dockerfile and container-related files
-├── notebooks/ # Optional Jupyter exploration notebooks
-├── src/ # Main application source code
-│ ├── data_preparation.py # Data cleaning and feature engineering
-│ ├── model_training.py # ML model definition and training
-│ ├── model_serving.py # FastAPI app for inference serving
-│ └── utils.py # Helper functions
-├── deployment/ # Scripts for deploying to GCP Cloud Run
-│ └── cloud_run_deploy.sh
-├── requirements.txt # Python dependencies
-├── .gitignore # Git ignore rules
-├── LICENSE # MIT license
-└── README.md # Project overview and instructions
+├── data/
+│   ├── raw/
+│   └── processed/
+├── docker/
+├── deployment/
+│   └── cloud_run_deploy.sh
+├── notebooks/
+├── plots/
+├── src/
+│   ├── data_preparation.py
+│   ├── model_training.py
+│   ├── model_serving.py
+│   ├── continuous_learning.py
+│   ├── utils.py
+│   └── data_visualization/
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ---
 
 ## 🛠️ Setup and Deployment
 
-1. Install dependencies:
+1. **Install Python dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Train model locally:
+2. **Train the model locally**:
 
    ```bash
    python src/model_training.py
    ```
 
-3. Serve API locally (for testing):
+3. **Serve the API locally**:
 
    ```bash
    uvicorn src.model_serving:app --reload --host 0.0.0.0 --port 8000
    ```
 
-4. Build Docker image:
+4. **Build Docker image**:
 
    ```bash
    docker build -t career-compass .
    ```
 
-5. Push to Artifact Registry and deploy to Cloud Run (via deploy script).
+5. **Deploy to GCP Cloud Run**:
+
+   ```bash
+   ./deployment/cloud_run_deploy.sh
+   ```
+
+---
+
+## 🔄 Continuous Learning (Optional)
+
+included in the deployment script
+
+## 📤 Sample Prediction Example
+
+**Sample curl command to test the API locally:**
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+        "Age": "25-34 years old",
+        "Accessibility": "No",
+        "EdLevel": "Bachelor’s degree",
+        "Gender": "Man",
+        "MentalHealth": "No",
+        "MainBranch": "I am a developer by profession",
+        "YearsCode": 5,
+        "YearsCodePro": 3,
+        "Country": "United States",
+        "PreviousSalary": 85000.0,
+        "ComputerSkills": 8,
+        "Skill_JavaScript": 1,
+        "Skill_Docker": 1,
+        "Skill_HTML_CSS": 1,
+        "Skill_SQL": 1,
+        "Skill_Git": 1,
+        "Skill_AWS": 0,
+        "Skill_Python": 1,
+        "Skill_PostgreSQL": 0,
+        "Skill_MySQL": 0,
+        "Skill_TypeScript": 1,
+        "Skill_Node_js": 1,
+        "Skill_React_js": 1,
+        "Skill_Java": 0,
+        "Skill_Bash_Shell": 0,
+        "Skill_CSharp": 0,
+        "Skill_Microsoft_SQL_Server": 0,
+        "Skill_SQLite": 0,
+        "Skill_jQuery": 0,
+        "Skill_Microsoft_Azure": 0,
+        "Skill_MongoDB": 0
+      }'
+```
+
+**Expected Response:**
+
+```json
+{
+  "employability_probability": 0.87,
+  "employability_label": 1,
+  "meaning": "Likely Employed",
+  "confidence_percent": "87%"
+}
+```
+
+---
+
+## 🧠 Full Expected Input Fields
+
+| Field            | Type  | Notes                                                 |
+| :--------------- | :---- | :---------------------------------------------------- |
+| Age              | str   | e.g., "25-34 years old"                               |
+| Accessibility    | str   | "Yes" or "No"                                         |
+| EdLevel          | str   | Highest education level                               |
+| Gender           | str   | e.g., "Man", "Woman"                                  |
+| MentalHealth     | str   | "Yes" or "No"                                         |
+| MainBranch       | str   | Professional background                               |
+| YearsCode        | int   | Total years coding experience                         |
+| YearsCodePro     | int   | Professional coding years                             |
+| Country          | str   | Country name                                          |
+| PreviousSalary   | float | Most recent salary                                    |
+| ComputerSkills   | int   | Self-rated number of skills known by applicant        |
+| Skill\_\* fields | int   | 0 (no skill) or 1 (has skill) across 20+ technologies |
 
 ---
 
 ## 📣 Notes
 
-This project is structured to emphasize clean production engineering, not research experimentation.  
-It prioritizes simple, scalable, reproducible deployments — aligned with real-world ML engineering practices.
+Career Compass emphasizes **real-world MLOps practices**:
+
+- Structured inputs
+- Clear outputs
+- Cloud-native scaling
+- Continuous model refresh capabilities
 
 ---
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).
